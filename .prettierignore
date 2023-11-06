@@ -1,0 +1,27 @@
+# Logs
+logs
+*.log
+
+# projects
+.husky
+node_modules
+dist
+dist-ssr
+build/
+src/assets
+/public
+/docs
+/bin
+Dockerfile
+
+# Editor directories and files
+.vscode
+.idea
+**/*.svg
+*.local
+*.sh
+*.md
+*.woff
+*.ttf
+*.code-workspace
+

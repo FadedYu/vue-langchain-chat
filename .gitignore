@@ -7,12 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Project
 node_modules
 .DS_Store
 dist
 dist-ssr
 coverage
 *.local
+auto-imports.d.ts
+components.d.ts
 
 /cypress/videos/
 /cypress/screenshots/
