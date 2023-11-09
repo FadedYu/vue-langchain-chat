@@ -7,7 +7,7 @@ import vue from '@vitejs/plugin-vue'
 // 按需导入插件
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-// 按需导入 elementPlus
+// 按需自动导入 elementPlus
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // 打包文件大小可视化视图预览插件，查看打包模块占用的空间
@@ -43,13 +43,25 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         resolvers: [ElementPlusResolver()]
       }),
       Components({
-        resolvers: [ElementPlusResolver()]
+        resolvers: [
+          ElementPlusResolver({
+            importStyle: 'sass',
+            directives: true
+          })
+        ]
       }),
       visualizer({
         emitFile: true,
         filename: 'stats.html'
       })
     ],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: `@use "@/styles/element/index.scss" as *;`
+        }
+      }
+    },
     build: {
       rollupOptions: {
         output: {
