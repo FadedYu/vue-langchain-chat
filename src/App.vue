@@ -4,7 +4,7 @@ import { zhCn } from 'element-plus/es/locale/index'
 
 <template>
   <el-config-provider :locale="zhCn">
-    <el-button>Default</el-button>
+    <router-view />
   </el-config-provider>
 </template>
 
