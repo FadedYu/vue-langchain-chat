@@ -1,8 +1,7 @@
+import type { AxiosInstance, InternalAxiosRequestConfig, RequestConfig, AxiosResponse } from './types'
+
 import axios, { AxiosError } from 'axios'
 import config, { defaultRequestInterceptors, defaultResponseInterceptors } from './config'
-
-import type { AxiosInstance, InternalAxiosRequestConfig, RequestConfig, AxiosResponse } from './types'
-import { ElMessage } from 'element-plus'
 
 const { interceptors } = config
 

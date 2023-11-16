@@ -1,5 +1,4 @@
 import type { AxiosConfig, AxiosResponse, AxiosRequestHeaders, InternalAxiosRequestConfig } from './types'
-import { ElMessage } from 'element-plus'
 import qs from 'qs'
 
 const config: AxiosConfig = {
