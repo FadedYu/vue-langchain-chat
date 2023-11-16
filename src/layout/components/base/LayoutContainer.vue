@@ -32,7 +32,6 @@ import LayoutFooter from './LayoutFooter.vue'
   height: 100vh;
 
   .el-header {
-    height: var(--el-header-height);
     padding: 0 10px;
     background-color: var(--el-color-primary-light-5);
   }

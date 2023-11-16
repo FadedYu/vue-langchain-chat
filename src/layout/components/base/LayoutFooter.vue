@@ -2,7 +2,7 @@
 
 <template>
   <div class="footer">
-    <el-text class="mx-1" type="info">chatchat</el-text>
+    <el-text class="mx-1" type="info">chat</el-text>
   </div>
 </template>
 

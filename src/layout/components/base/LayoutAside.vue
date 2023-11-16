@@ -57,6 +57,13 @@ const collapse = computed(() => {
   border-right: 0;
 }
 
+.el-menu-item {
+  height: 40px;
+  margin: 5px 8px;
+  line-height: 40px;
+  border-radius: 10px;
+}
+
 .el-menu-item.is-active {
   color: var(--el-menu-active-color);
   background-color: var(--el-color-primary-light-8);
