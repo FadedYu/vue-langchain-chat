@@ -37,10 +37,22 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         '@': fileURLToPath(new URL('./src', import.meta.url))
       }
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: `@use "@/styles/element/index.scss" as *;`
+        }
+      }
+    },
     plugins: [
       vue(),
       AutoImport({
-        resolvers: [ElementPlusResolver()]
+        resolvers: [
+          ElementPlusResolver({
+            importStyle: 'sass',
+            directives: true
+          })
+        ]
       }),
       Components({
         resolvers: [
@@ -55,13 +67,6 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         filename: 'stats.html'
       })
     ],
-    css: {
-      preprocessorOptions: {
-        scss: {
-          additionalData: `@use "@/styles/element/index.scss" as *;`
-        }
-      }
-    },
     build: {
       rollupOptions: {
         output: {

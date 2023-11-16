@@ -14,6 +14,18 @@ body #app {
   width: 100%;
   height: 100%;
 }
+/* 全局滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #0003;
+  border-radius: 10px;
+  transition: all 0.2s ease-in-out;
+}
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+}
 
 .layout-main-bg-full {
   background-color: white;
