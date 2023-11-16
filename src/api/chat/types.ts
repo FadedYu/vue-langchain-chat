@@ -1,4 +1,6 @@
 export interface chatType {
-  role: string
-  content: string
+  messages: {
+    role: string
+    content: string
+  }[]
 }

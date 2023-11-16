@@ -1,11 +1,280 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref, reactive, nextTick } from 'vue'
+import HumanChat from './HumanChat.vue'
+import AssistantChat from './AssistantChat.vue'
+import MicrophoneChat from './MicrophoneChat.vue'
+import { ChatLoading } from '@/components/loading'
+import { chatConversationApi } from '@/api/chat'
+
+type Chat = {
+  role: string
+  content: string
+}[]
+
+const isExpand = ref(false)
+const loading = ref(false)
+const minRows = ref(3)
+const maxRows = ref(3)
+const humanInput = ref('')
+const sendExpanStyle = {
+  height: '450px',
+  boxShadow: '5px -8px 20px 0 rgba(0, 0, 0, .12)'
+}
+const chat: Chat = reactive([
+  {
+    role: 'assistant',
+    content: '您好！有什么可以帮助您的吗？'
+  }
+])
+
+/**
+ * 聊天输入框放大缩小
+ */
+function chatSendScaleClick() {
+  isExpand.value = !isExpand.value
+
+  if (isExpand.value) {
+    minRows.value = 17
+    maxRows.value = 17
+  } else {
+    minRows.value = 3
+    maxRows.value = 3
+  }
+}
+
+/**
+ * 滚动条，滚动到底部
+ */
+function scrollToButtom() {
+  nextTick(() => {
+    const scroll = document.getElementsByClassName('chat-card-body')[0]
+    scroll.scrollTo({
+      top: scroll.scrollHeight,
+      behavior: 'smooth'
+    })
+  })
+}
+
+/**
+ * 输入框提交
+ */
+function submit() {
+  if (humanInput.value === '') {
+    ElMessage.warning('请输入对话内容。')
+    return
+  }
+
+  chat.push({
+    role: 'human',
+    content: humanInput.value
+  })
+  let data = {
+    messages: chat
+  }
+
+  // 调用对话接口
+  chatConversationApi(data).then(res => {
+    if (res.success) {
+      chat.push({
+        role: 'assistant',
+        content: res.data
+      })
+    }
+  })
+
+  if (isExpand.value) {
+    chatSendScaleClick()
+  }
+  humanInput.value = ''
+  loading.value = true
+
+  scrollToButtom()
+}
+</script>
 
 <template>
-  <el-card shadow="never" class="chat-main"> Never </el-card>
+  <div class="chat-container">
+    <div class="chat-card">
+      <div class="chat-card-header"></div>
+      <div class="chat-card-body">
+        <template v-for="(item, index) in chat">
+          <HumanChat :key="index" v-if="item.role === 'human'" :content="item.content"></HumanChat>
+          <AssistantChat
+            :key="index"
+            v-if="item.role === 'assistant'"
+            :content="item.content"
+            :stream="index === chat.length - 1 ? true : false"
+          ></AssistantChat>
+        </template>
+        <div class="chat-loading" v-if="loading">
+          <ChatLoading></ChatLoading>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-send-card" :style="isExpand ? sendExpanStyle : undefined">
+      <div class="chat-send-scale" @click="chatSendScaleClick">
+        <el-icon v-if="isExpand"><ArrowDown /></el-icon>
+        <el-icon v-else><ArrowUp /></el-icon>
+      </div>
+      <el-input
+        :key="Number(isExpand)"
+        type="textarea"
+        class="chat-send-input"
+        maxlength="2000"
+        v-model="humanInput"
+        :autosize="{ minRows: minRows, maxRows: maxRows }"
+        :autofocus="true"
+        :readonly="loading"
+        @keyup.ctrl.enter.exact="submit"
+        placeholder="请输入对话内容，换行请使用 Enter，发送可使用 Ctrl + Enter"
+      />
+      <div class="chat-send-bottom-controls">
+        <el-row>
+          <el-dropdown trigger="click">
+            <el-button type="primary" text bg>
+              选项
+              <el-icon class="el-icon--right">
+                <arrow-down />
+              </el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>Action 1</el-dropdown-item>
+                <el-dropdown-item>Action 2</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
+          <MicrophoneChat style="margin-left: 12px"></MicrophoneChat>
+        </el-row>
+        <div class="bottom-send">
+          <span>{{ humanInput.length }} / 2000 </span>
+          <el-button type="primary" text :disabled="loading" @click="submit">
+            <el-icon size="20px">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M5.69362 11.9997L2.29933 3.2715C2.0631 2.66403 2.65544 2.08309 3.2414 2.28959L3.33375 2.32885L21.3337 11.3288C21.852 11.588 21.8844 12.2975 21.4309 12.6129L21.3337 12.6705L3.33375 21.6705C2.75077 21.962 2.11746 21.426 2.2688 20.8234L2.29933 20.7278L5.69362 11.9997L2.29933 3.2715L5.69362 11.9997ZM4.4021 4.54007L7.01109 11.2491L13.6387 11.2497C14.0184 11.2497 14.3322 11.5318 14.3818 11.8979L14.3887 11.9997C14.3887 12.3794 14.1065 12.6932 13.7404 12.7428L13.6387 12.7497L7.01109 12.7491L4.4021 19.4593L19.3213 11.9997L4.4021 4.54007Z"
+                ></path>
+              </svg>
+            </el-icon>
+          </el-button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.chat-main {
-  height: 500px;
+$border-radius: 12px;
+
+.chat-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: calc(
+    100vh - 2px - var(--el-header-height) - var(--app-content-padding) - var(--app-content-padding) - var(
+        --el-footer-height
+      )
+  );
+
+  .chat-card {
+    width: 100%;
+    max-width: 1200px;
+    height: calc(100% - 160px);
+    margin-bottom: 10px;
+    overflow: hidden;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color-light);
+    border-radius: $border-radius;
+
+    .chat-card-header {
+      width: 100%;
+      height: 60px;
+      background-color: var(--el-bg-color);
+      border-bottom: 1px solid var(--el-border-color-light);
+    }
+
+    .chat-card-body {
+      height: calc(100% - 61px - 30px);
+      padding: 0 15px 15px;
+      margin-top: 15px;
+      overflow: auto;
+
+      .chat-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+      }
+    }
+  }
+
+  .chat-send-card {
+    position: absolute;
+    bottom: 0;
+    z-index: 10;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px;
+    height: 150px;
+    padding: 5px 10px;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color-light);
+    border-radius: $border-radius;
+    transition: all var(--el-transition-duration);
+
+    .chat-send-scale {
+      height: 20px;
+      text-align: center;
+
+      .el-icon {
+        width: 40px;
+        cursor: pointer;
+        transition: var(--el-transition-duration-fast);
+
+        &:hover {
+          background-color: var(--el-fill-color-light);
+        }
+
+        &:active {
+          background-color: var(--el-fill-color);
+        }
+      }
+    }
+
+    .chat-send-input {
+      flex: 1;
+      /* stylelint-disable-next-line selector-class-pattern */
+      :deep(.el-textarea__inner) {
+        resize: none;
+        background-color: #f6f6f6;
+        border: 0;
+        border-radius: $border-radius;
+        box-shadow: none;
+      }
+    }
+
+    .chat-send-bottom-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 35px;
+      margin-top: 10px;
+
+      .bottom-send {
+        display: flex;
+        align-items: center;
+        font-size: var(--el-font-size-small);
+        color: var(--el-text-color-placeholder);
+
+        .el-button {
+          margin-left: 10px;
+        }
+      }
+    }
+  }
 }
 </style>
