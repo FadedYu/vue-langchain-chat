@@ -25,7 +25,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       port: Number(envConfig.VITE_PORT),
       proxy: {
         '/api': {
-          target: envConfig.VITE_API_BASEURL,
+          target: envConfig.VITE_TARGET_BASEURL,
           ws: false,
           changeOrigin: true,
           rewrite: path => path.replace(/^\/api/, '')
