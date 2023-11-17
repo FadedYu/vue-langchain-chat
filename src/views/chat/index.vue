@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, reactive, nextTick } from 'vue'
-import HumanChat from './HumanChat.vue'
-import AssistantChat from './AssistantChat.vue'
-import MicrophoneChat from './MicrophoneChat.vue'
+import { ref, reactive, toRaw, nextTick } from 'vue'
+import HumanChat from './components/HumanChat.vue'
+import AssistantChat from './components/AssistantChat.vue'
+import MicrophoneChat from './components/MicrophoneChat.vue'
 import { ChatLoading } from '@/components/loading'
 import { chatConversationApi } from '@/api/chat'
 
 type Chat = {
   role: string
   content: string
-}[]
+}
 
 const isExpand = ref(false)
 const loading = ref(false)
@@ -20,7 +20,9 @@ const sendExpanStyle = {
   height: '450px',
   boxShadow: '5px -8px 20px 0 rgba(0, 0, 0, .12)'
 }
-const chat: Chat = reactive([
+
+// 响应式对话，界面显示
+const chatting: Chat[] = reactive([
   {
     role: 'assistant',
     content: '您好！有什么可以帮助您的吗？'
@@ -64,18 +66,21 @@ function submit() {
     return
   }
 
-  chat.push({
-    role: 'human',
+  chatting.push({
+    role: 'user',
     content: humanInput.value
   })
-  let data = {
-    messages: chat
+
+  let chatHistory = toRaw(chatting)
+  chatHistory.shift()
+  let param = {
+    messages: chatHistory
   }
 
   // 调用对话接口
-  chatConversationApi(data).then(res => {
+  chatConversationApi(param).then(res => {
     if (res.success) {
-      chat.push({
+      chatting.push({
         role: 'assistant',
         content: res.data
       })
@@ -97,13 +102,13 @@ function submit() {
     <div class="chat-card">
       <div class="chat-card-header"></div>
       <div class="chat-card-body">
-        <template v-for="(item, index) in chat">
-          <HumanChat :key="index" v-if="item.role === 'human'" :content="item.content"></HumanChat>
+        <template v-for="(item, index) in chatting">
+          <HumanChat :key="index" v-if="item.role === 'user'" :content="item.content"></HumanChat>
           <AssistantChat
             :key="index"
             v-if="item.role === 'assistant'"
             :content="item.content"
-            :stream="index === chat.length - 1 ? true : false"
+            :stream="index === chatting.length - 1 ? true : false"
           ></AssistantChat>
         </template>
         <div class="chat-loading" v-if="loading">
