@@ -35,6 +35,7 @@ const props = defineProps({
   gap: 8px;
   align-items: flex-start;
   padding: 16px;
+  margin-bottom: 10px;
   font-size: 16px;
   background-color: #e7e7e7;
   border-radius: 8px;

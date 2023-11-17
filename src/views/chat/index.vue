@@ -1,33 +1,38 @@
 <script setup lang="ts">
-import { ref, reactive, toRaw, nextTick } from 'vue'
+import type { Ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import HumanChat from './components/HumanChat.vue'
 import AssistantChat from './components/AssistantChat.vue'
-import MicrophoneChat from './components/MicrophoneChat.vue'
 import { ChatLoading } from '@/components/loading'
-import { chatConversationApi } from '@/api/chat'
+import { chatCancelRequest, chatConversationApi } from '@/api/chat'
 
 type Chat = {
   role: string
   content: string
 }
 
-const isExpand = ref(false)
-const loading = ref(false)
-const minRows = ref(3)
-const maxRows = ref(3)
-const humanInput = ref('')
+// 输入文本框容器高度
 const sendExpanStyle = {
   height: '450px',
   boxShadow: '5px -8px 20px 0 rgba(0, 0, 0, .12)'
 }
+// 输入框高度大小
+const textRow = {
+  minRows: 3,
+  maxRows: 3
+}
+// 对话历史记录，传递给模型
+let chatHistory: Chat[] = []
+const defaultChat: Chat = {
+  role: 'assistant',
+  content: '您好！有什么可以帮助您的吗？'
+}
 
+const isExpand = ref(false)
+const loading = ref(false)
+const humanInput = ref('')
 // 响应式对话，界面显示
-const chatting: Chat[] = reactive([
-  {
-    role: 'assistant',
-    content: '您好！有什么可以帮助您的吗？'
-  }
-])
+const chatting: Ref<Chat[]> = ref([defaultChat])
 
 /**
  * 聊天输入框放大缩小
@@ -36,25 +41,47 @@ function chatSendScaleClick() {
   isExpand.value = !isExpand.value
 
   if (isExpand.value) {
-    minRows.value = 17
-    maxRows.value = 17
+    textRow.minRows = 17
+    textRow.maxRows = 17
   } else {
-    minRows.value = 3
-    maxRows.value = 3
+    textRow.minRows = 3
+    textRow.maxRows = 3
   }
 }
 
 /**
  * 滚动条，滚动到底部
  */
-function scrollToButtom() {
+function scrollToButtom(div: Element | null) {
+  if (div === null) {
+    return
+  }
   nextTick(() => {
-    const scroll = document.getElementsByClassName('chat-card-body')[0]
+    const scroll = div
     scroll.scrollTo({
       top: scroll.scrollHeight,
       behavior: 'smooth'
     })
   })
+}
+
+/**
+ * 输入框键盘事件
+ * @param event KeyboardEvent
+ */
+function inputKeyboard(event: KeyboardEvent | Event) {
+  let e = event as KeyboardEvent
+  if (e.key == 'Enter' && e.ctrlKey) {
+    // Ctrl + Enter 换行
+    humanInput.value = humanInput.value + '\n'
+    scrollToButtom(
+      document.getElementsByClassName('chat-send-input')[0].getElementsByClassName('el-textarea__inner')[0]
+    )
+  } else if (e.key == 'Enter') {
+    // Enter 提交
+    event.preventDefault()
+    submit()
+  }
 }
 
 /**
@@ -66,26 +93,31 @@ function submit() {
     return
   }
 
-  chatting.push({
+  let userChat = {
     role: 'user',
     content: humanInput.value
-  })
-
-  let chatHistory = toRaw(chatting)
-  chatHistory.shift()
+  }
+  chatting.value.push(userChat)
+  chatHistory.push(userChat)
   let param = {
     messages: chatHistory
   }
-
   // 调用对话接口
-  chatConversationApi(param).then(res => {
-    if (res.success) {
-      chatting.push({
-        role: 'assistant',
-        content: res.data
-      })
-    }
-  })
+  chatConversationApi(param)
+    .then(res => {
+      if (res.success) {
+        let assistantChat = {
+          role: 'assistant',
+          content: res.data
+        }
+        chatting.value.push(assistantChat)
+        chatHistory.push(assistantChat)
+      }
+    })
+    .finally(() => {
+      loading.value = false
+      scrollToButtom(document.getElementsByClassName('chat-card-body')[0])
+    })
 
   if (isExpand.value) {
     chatSendScaleClick()
@@ -93,7 +125,25 @@ function submit() {
   humanInput.value = ''
   loading.value = true
 
-  scrollToButtom()
+  scrollToButtom(document.getElementsByClassName('chat-card-body')[0])
+}
+
+/**
+ * 清除历史
+ */
+function clearHistory() {
+  chatting.value = [defaultChat]
+  chatHistory = []
+  humanInput.value = ''
+  isExpand.value = false
+  loading.value = false
+  textRow.minRows = 3
+  textRow.maxRows = 3
+}
+
+function restartNewChat() {
+  chatCancelRequest()
+  clearHistory()
 }
 </script>
 
@@ -128,11 +178,11 @@ function submit() {
         class="chat-send-input"
         maxlength="2000"
         v-model="humanInput"
-        :autosize="{ minRows: minRows, maxRows: maxRows }"
+        :autosize="textRow"
         :autofocus="true"
         :readonly="loading"
-        @keyup.ctrl.enter.exact="submit"
-        placeholder="请输入对话内容，换行请使用 Enter，发送可使用 Ctrl + Enter"
+        @keydown.enter="inputKeyboard"
+        placeholder="请输入对话内容……换行请使用 Ctrl + Enter，发送可使用 Enter"
       />
       <div class="chat-send-bottom-controls">
         <el-row>
@@ -145,13 +195,11 @@ function submit() {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>Action 1</el-dropdown-item>
-                <el-dropdown-item>Action 2</el-dropdown-item>
+                <el-dropdown-item disabled>新对话</el-dropdown-item>
+                <el-dropdown-item @click="clearHistory">清除历史</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-
-          <MicrophoneChat style="margin-left: 12px"></MicrophoneChat>
         </el-row>
         <div class="bottom-send">
           <span>{{ humanInput.length }} / 2000 </span>
@@ -255,10 +303,19 @@ $border-radius: 12px;
       /* stylelint-disable-next-line selector-class-pattern */
       :deep(.el-textarea__inner) {
         resize: none;
-        background-color: #f6f6f6;
+        background-color: #f7f7f7;
         border: 0;
         border-radius: $border-radius;
         box-shadow: none;
+
+        &:focus {
+          outline: none;
+          box-shadow: 0 0 0 1px var(--el-input-focus-border-color) inset;
+        }
+
+        &:read-only {
+          box-shadow: none;
+        }
       }
     }
 

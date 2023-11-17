@@ -9,9 +9,15 @@ import type { chatType } from './types'
         'content': '你好！你是？'}]
 }
 */
-export const chatConversationApi = (data: chatType): Promise<IResponse<string>> => {
+const chatConversationApi = (data: chatType): Promise<IResponse<string>> => {
   return request.post({ url: '/v1/chat/completions', data })
 }
+
+const chatCancelRequest = () => {
+  return request.cancelRequest('/v1/chat/completions')
+}
+
+export { chatConversationApi, chatCancelRequest }
 
 // get请求例子
 // export const loginOutApi = (): Promise<IResponse> => {
