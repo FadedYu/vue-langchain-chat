@@ -15,5 +15,9 @@ declare interface AxiosConfig {
 
 declare interface IResponse<T = any> {
   success: boolean
+  message: string
   data: T extends any ? T : T & any
 }
+
+declare type Nullable<T> = T | null
+declare type Recordable<T = any, K = string> = Record<K extends null | undefined ? string : K, T>

@@ -1,4 +1,5 @@
 import type { AxiosConfig, AxiosResponse, AxiosRequestHeaders, InternalAxiosRequestConfig } from './types'
+import { checkStatus } from './checkStatus'
 import qs from 'qs'
 
 const config: AxiosConfig = {
@@ -59,8 +60,10 @@ const defaultResponseInterceptors = (response: AxiosResponse<any>) => {
     return response
   } else if (response.data.success === config.success) {
     return response.data
+  } else if (response.data.success === false) {
+    ElMessage.error((response as any).message || '请求失败！请您稍后重试')
   } else {
-    ElMessage.error((response as any).message)
+    checkStatus(response.status)
   }
 }
 
