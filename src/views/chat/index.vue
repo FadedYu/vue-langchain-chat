@@ -3,7 +3,7 @@ import type { Ref } from 'vue'
 import { ref, nextTick } from 'vue'
 import HumanChat from './components/HumanChat.vue'
 import AssistantChat from './components/AssistantChat.vue'
-import { ChatLoading } from '@/components/loading'
+import { ChatLoading } from '@/components/Loading'
 import { chatCancelRequest, chatConversationApi } from '@/api/chat'
 
 type Chat = {
@@ -11,7 +11,7 @@ type Chat = {
   content: string
 }
 
-// 输入文本框容器高度
+// 展开的输入文本框容器高度
 const sendExpanStyle = {
   height: '450px',
   boxShadow: '5px -8px 20px 0 rgba(0, 0, 0, .12)'
@@ -114,6 +114,9 @@ function submit() {
         chatHistory.push(assistantChat)
       }
     })
+    .catch(() => {
+      chatHistory.pop()
+    })
     .finally(() => {
       loading.value = false
       scrollToButtom(document.getElementsByClassName('chat-card-body')[0])
@@ -142,6 +145,7 @@ function clearHistory() {
 }
 
 function restartNewChat() {
+  // todo: 传递后台开启新对话
   chatCancelRequest()
   clearHistory()
 }
@@ -195,7 +199,7 @@ function restartNewChat() {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item disabled>新对话</el-dropdown-item>
+                <el-dropdown-item @click="restartNewChat" disabled>新对话</el-dropdown-item>
                 <el-dropdown-item @click="clearHistory">清除历史</el-dropdown-item>
               </el-dropdown-menu>
             </template>

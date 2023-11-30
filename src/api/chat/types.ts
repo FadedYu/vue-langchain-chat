@@ -1,4 +1,4 @@
-export interface chatType {
+export interface ChatType {
   messages: {
     role: string
     content: string

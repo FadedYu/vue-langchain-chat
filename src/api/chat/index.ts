@@ -1,15 +1,8 @@
 import request from '@/config/axios'
-import type { chatType } from './types'
+import type { ChatType } from './types'
 
 // chat对话内容
-/* 
-{
-    'messages': [{
-        'role': 'user',
-        'content': '你好！你是？'}]
-}
-*/
-const chatConversationApi = (data: chatType): Promise<IResponse<string>> => {
+const chatConversationApi = (data: ChatType): Promise<IResponse<string>> => {
   return request.post({ url: '/v1/chat/completions', data })
 }
 
