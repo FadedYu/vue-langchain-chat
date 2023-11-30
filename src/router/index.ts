@@ -19,16 +19,16 @@ const routes: RouteRecordRaw[] = [
           icon: 'ChatDotRound'
         },
         component: () => import('@/views/chat/index.vue')
+      },
+      {
+        path: '/documents',
+        name: 'documents',
+        meta: {
+          title: '上传文档',
+          icon: 'Upload'
+        },
+        component: () => import('@/views/manage/documents/index.vue')
       }
-      // {
-      //   path: '/upload',
-      //   name: 'upload',
-      //   meta: {
-      //     title: '上传文档',
-      //     icon: 'Upload'
-      //   },
-      //   component: () => import('@/views/manage/upload/index.vue')
-      // }
     ]
   }
 ]
