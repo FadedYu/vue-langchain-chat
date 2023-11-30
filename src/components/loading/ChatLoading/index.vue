@@ -39,19 +39,6 @@
   animation: ball-beat 0.7s -0.15s infinite linear;
 }
 
-// .loading {
-//   width: 54px;
-//   height: 18px;
-// }
-
-// .loading > div {
-//   width: 10px;
-//   height: 10px;
-//   margin: 4px;
-//   border-radius: 100%;
-//   animation: ball-beat 0.7s -0.15s infinite linear;
-// }
-
 .loading > div:nth-child(2n-1) {
   animation-delay: -0.5s;
 }
