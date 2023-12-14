@@ -2,6 +2,7 @@ import type { AxiosInstance, InternalAxiosRequestConfig, RequestConfig, AxiosRes
 
 import axios, { AxiosError } from 'axios'
 import config, { defaultRequestInterceptors, defaultResponseInterceptors } from './config'
+import { checkStatus } from './checkStatus'
 
 const { interceptors } = config
 
@@ -34,7 +35,7 @@ axiosInstance.interceptors.response.use(
   },
   (error: AxiosError) => {
     console.log('err： ' + error) // for debug
-    ElMessage.error(error.message)
+    checkStatus(error.response?.status as number)
     return Promise.reject(error)
   }
 )

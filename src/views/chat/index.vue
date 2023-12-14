@@ -9,6 +9,7 @@ import { chatCancelRequest, chatConversationApi } from '@/api/chat'
 type Chat = {
   role: string
   content: string
+  error?: boolean
 }
 
 // 展开的输入文本框容器高度
@@ -80,20 +81,20 @@ function inputKeyboard(event: KeyboardEvent | Event) {
   } else if (e.key == 'Enter') {
     // Enter 提交
     event.preventDefault()
-    submit()
+    onSubmit()
   }
 }
 
 /**
  * 输入框提交
  */
-function submit() {
+function onSubmit() {
   if (humanInput.value === '') {
     ElMessage.warning('请输入对话内容。')
     return
   }
 
-  let userChat = {
+  let userChat: Chat = {
     role: 'user',
     content: humanInput.value
   }
@@ -115,7 +116,10 @@ function submit() {
       }
     })
     .catch(() => {
+      chatting.value.pop()
       chatHistory.pop()
+      userChat.error = true
+      chatting.value.push(userChat)
     })
     .finally(() => {
       loading.value = false
@@ -131,23 +135,31 @@ function submit() {
   scrollToButtom(document.getElementsByClassName('chat-card-body')[0])
 }
 
+function onClearHistory() {
+  clearHistory()
+  ElMessage.success('已清除对话历史。')
+}
+
+function onRestartNewChat() {
+  chatCancelRequest()
+  clearHistory()
+  chatting.value = []
+  ElMessage.success('开始新对话。')
+  nextTick(() => {
+    chatting.value.push(defaultChat)
+  })
+}
+
 /**
  * 清除历史
  */
 function clearHistory() {
-  chatting.value = [defaultChat]
   chatHistory = []
   humanInput.value = ''
   isExpand.value = false
   loading.value = false
   textRow.minRows = 3
   textRow.maxRows = 3
-}
-
-function restartNewChat() {
-  // todo: 传递后台开启新对话
-  chatCancelRequest()
-  clearHistory()
 }
 </script>
 
@@ -157,7 +169,7 @@ function restartNewChat() {
       <div class="chat-card-header"></div>
       <div class="chat-card-body">
         <template v-for="(item, index) in chatting">
-          <HumanChat :key="index" v-if="item.role === 'user'" :content="item.content"></HumanChat>
+          <HumanChat :key="index" v-if="item.role === 'user'" :content="item.content" :error="item.error"></HumanChat>
           <AssistantChat
             :key="index"
             v-if="item.role === 'assistant'"
@@ -199,15 +211,15 @@ function restartNewChat() {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="restartNewChat" disabled>新对话</el-dropdown-item>
-                <el-dropdown-item @click="clearHistory">清除历史</el-dropdown-item>
+                <el-dropdown-item @click="onRestartNewChat">新对话</el-dropdown-item>
+                <el-dropdown-item @click="onClearHistory">清除历史</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </el-row>
         <div class="bottom-send">
           <span>{{ humanInput.length }} / 2000 </span>
-          <el-button type="primary" text :disabled="loading" @click="submit">
+          <el-button type="primary" text :disabled="loading" @click="onSubmit">
             <el-icon size="20px">
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path

@@ -1,12 +1,19 @@
 <script setup lang="ts">
 const props = defineProps({
-  content: String
+  content: String,
+  error: {
+    required: false,
+    type: Boolean,
+    default: false
+  }
 })
+
+const errorContent = '消息发送失败。'
 </script>
 
 <template>
   <div class="chat-human">
-    <el-icon size="32px">
+    <el-icon size="32px" class="human-icon">
       <svg
         viewBox="0 0 24 24"
         aria-hidden="true"
@@ -25,6 +32,18 @@ const props = defineProps({
 
     <p class="chat-content">
       {{ props.content }}
+      <el-tooltip v-if="error" :content="errorContent" placement="top">
+        <el-icon class="error">
+          <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+            <path d="M64 512a448 448 0 1 0 896 0 448 448 0 1 0-896 0z" fill="#FF4C4C" p-id="5069"></path>
+            <path
+              d="M529.28 192a81.28 81.28 0 0 1 80.256 94.72l-42.88 257.728a37.76 37.76 0 0 1-74.56 0L449.088 286.72A81.28 81.28 0 0 1 529.344 192zM528 800a80 80 0 1 1 0-160 80 80 0 0 1 0 160z"
+              fill="#FFFFFF"
+              p-id="5070"
+            ></path>
+          </svg>
+        </el-icon>
+      </el-tooltip>
     </p>
   </div>
 </template>
@@ -40,17 +59,25 @@ const props = defineProps({
   background-color: #e7e7e7;
   border-radius: 8px;
 
-  .el-icon {
+  .human-icon {
     color: #fff;
     background-color: #ff6c6c;
     border-radius: 8px;
   }
 
   .chat-content {
+    position: relative;
     flex: 1;
     margin: auto;
     line-height: 25px;
     white-space: pre-wrap;
+
+    .error {
+      position: absolute;
+      top: 5px;
+      right: 0;
+      cursor: pointer;
+    }
   }
 }
 </style>

@@ -26,7 +26,7 @@ export const checkStatus = (status: number) => {
       ElMessage.error('请求超时！请您稍后重试')
       break
     case 500:
-      ElMessage.error('服务异常！')
+      ElMessage.error('服务异常！请您稍后重试')
       break
     case 502:
       ElMessage.error('网关错误！')
